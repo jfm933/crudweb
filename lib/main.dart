@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter CRUD WEB',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -39,6 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _alamatController = TextEditingController();
   final TextEditingController _noHpController = TextEditingController();
   final TextEditingController _laporanController = TextEditingController();
+  final TextEditingController _statusNikahController = TextEditingController();
 
   final CollectionReference _todosCollection =
       FirebaseFirestore.instance.collection('laporan');
@@ -91,6 +92,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   decoration: InputDecoration(
                     labelText: 'Laporan',
                   ))),
+          Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                  controller: _statusNikahController,
+                  decoration: InputDecoration(
+                    labelText: 'Status Nikah',
+                  ))),
           StreamBuilder<QuerySnapshot>(
             stream: _todosCollection.snapshots(),
             builder: (context, snapshot) {
@@ -121,6 +129,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           label: Text('Laporan'),
                         ),
                         DataColumn(
+                          label: Text('Status Nikah'),
+                        ),
+                        DataColumn(
                           label: Text('Status'),
                         ),
                         DataColumn(
@@ -128,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         DataColumn(
                           label: Text('Edit'),
-                        )
+                        ),
                       ],
                       rows: documents.map((doc) => _buildDataRow(doc)).toList(),
                     ),
@@ -141,13 +152,52 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          if (_namaController.text.isEmpty ||
+              _jenkelController.text.isEmpty ||
+              _alamatController.text.isEmpty ||
+              _noHpController.text.isEmpty ||
+              _laporanController.text.isEmpty ||
+              _statusNikahController.text.isEmpty) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Alert'),
+                  content: Text('Tolong Diisi'),
+                  actions: [
+                    TextButton(
+                      child: Text('OK'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            return;
+          }
+
           _todosCollection.add({
-            'nama': _namaController.text,
+            'nama': _namaController.text.isEmpty
+                ? 'Belum Diisi'
+                : _namaController.text,
             'status': false,
-            'alamat': _alamatController.text,
-            'laporan': _laporanController.text,
-            'no_hp': _noHpController.text,
-            'jenkel': _jenkelController.text,
+            'alamat': _alamatController.text.isEmpty
+                ? 'Belum Diisi'
+                : _alamatController.text,
+            'laporan': _laporanController.text.isEmpty
+                ? 'Belum Diisi'
+                : _laporanController.text,
+            'no_hp': _noHpController.text.isEmpty
+                ? 'Belum Diisi'
+                : _noHpController.text,
+            'jenkel': _jenkelController.text.isEmpty
+                ? 'Belum Diisi'
+                : _jenkelController.text,
+            'status_nikah': _statusNikahController.text.isEmpty
+                ? 'Belum Diisi'
+                : _statusNikahController.text,
             'created_at': DateTime.now(),
           });
           _namaController.text = '';
@@ -155,6 +205,7 @@ class _MyHomePageState extends State<MyHomePage> {
           _noHpController.text = '';
           _laporanController.text = '';
           _jenkelController.text = '';
+          _statusNikahController.text = '';
         },
         child: Icon(Icons.add),
       ),
@@ -164,11 +215,12 @@ class _MyHomePageState extends State<MyHomePage> {
   DataRow _buildDataRow(DocumentSnapshot doc) {
     return DataRow(
       cells: <DataCell>[
-        DataCell(Text(doc['nama'])),
-        DataCell(Text(doc['jenkel'])),
-        DataCell(Text(doc['alamat'])),
-        DataCell(Text(doc['no_hp'])),
-        DataCell(Text(doc['laporan'])),
+        DataCell(Text(doc['nama'] == null ? 'Belum Diisi' : doc['nama'])),
+        DataCell(Text(doc['jenkel'] ?? 'Belum Diisi')),
+        DataCell(Text(doc['alamat'] ?? 'Belum Diisi')),
+        DataCell(Text(doc['no_hp'] ?? 'Belum Diisi')),
+        DataCell(Text(doc['laporan'] ?? 'Belum Diisi')),
+        DataCell(Text(doc['status_nikah'] ?? 'Belum Diisi')),
         DataCell(DropdownButton<bool>(
           value: doc['status'],
           items: <DropdownMenuItem<bool>>[
@@ -205,6 +257,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   TextEditingController(text: doc['laporan']);
               final jenkelController =
                   TextEditingController(text: doc['jenkel']);
+              final statusNikahController =
+                  TextEditingController(text: doc['status_nikah']);
 
               showDialog(
                 context: context,
@@ -243,6 +297,12 @@ class _MyHomePageState extends State<MyHomePage> {
                             labelText: 'Jenis Kelamin',
                           ),
                         ),
+                        TextField(
+                          controller: statusNikahController,
+                          decoration: InputDecoration(
+                            labelText: 'Status Nikah',
+                          ),
+                        ),
                       ],
                     ),
                     actions: <Widget>[
@@ -255,6 +315,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             'no_hp': _noHpController.text,
                             'laporan': _laporanController.text,
                             'jenkel': _jenkelController.text,
+                            'status_nikah': _statusNikahController.text,
                           });
                           Navigator.of(context).pop();
                         },
